@@ -1,0 +1,23 @@
+{
+  "name": "evaluador-lectura-frontend",
+  "version": "1.0.0",
+  "description": "Frontend de la aplicación web para evaluar la calidad lectora mediante voz, mirada y tiempo de lectura.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "keywords": [
+    "lectura",
+    "react",
+    "educación",
+    "voz",
+    "seguimiento ocular",
+    "neuropsicología"
+  ],
+  "author": "Cristina",
+  "license": "MIT",
+  "dependencies": {
+    "react":
