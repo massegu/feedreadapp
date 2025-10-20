@@ -1,5 +1,5 @@
 {
-  "name": "evaluador-lectura-frontend",
+  "name": "feedreadapp-frontend",
   "version": "1.0.0",
   "description": "Frontend de la aplicación web para evaluar la calidad lectora mediante voz, mirada y tiempo de lectura.",
   "main": "src/index.js",

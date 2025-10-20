@@ -1,0 +1,23 @@
+{
+  "name": "Evaluador Lectura",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [3000, 8000],
+  "postCreateCommand": "npm install --prefix frontend && pip install -r backend/requirements.txt",
+  "remoteEnv": {
+    "FASTAPI_PORT": "8000",
+    "REACT_PORT": "3000"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
+
