@@ -13,7 +13,6 @@ RUN pip install openai-whisper
 
 # Instalar PostgreSQL
 RUN apt-get update && \
-    apt-get install -y postgresql postgresql-contrib && \
-    service postgresql start
-    
+    apt-get install -y postgresql postgresql-contrib && 
+
 WORKDIR /workspaces/feedreadapp
