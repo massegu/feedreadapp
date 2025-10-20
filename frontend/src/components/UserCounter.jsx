@@ -22,3 +22,6 @@ const UserCounter = () => {
   return (
     <p>👥 Número de personas que han probado la app: {count}</p>
   );
+  };
+
+export default UserCounter;
