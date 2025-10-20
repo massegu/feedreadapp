@@ -1,10 +1,38 @@
 # main.py
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 import whisper
 import tempfile
 import os
 
 app = FastAPI()
+# backend/main.py
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+import whisper
+import tempfile
+import os
+
+app = FastAPI()
+
+# Permitir peticiones desde cualquier origen (útil para desarrollo)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+# Contador de usuarios
+user_count = 0
+
+@app.get("/register-user")
+def register_user():
+    global user_count
+    user_count += 1
+    return {"user_count": user_count}
+
+# Cargar modelo de Whisper
 model = whisper.load_model("base")
 
 @app.post("/analyze-voice")
@@ -29,3 +57,8 @@ async def analyze_voice(file: UploadFile = File(...)):
     }
 
     return feedback
+
+
+
+
+
