@@ -1,21 +1,16 @@
 # main.py
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
+import csv
+import json
 import whisper
 import tempfile
 import os
 
 app = FastAPI()
-# backend/main.py
-from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-import whisper
-import tempfile
-import os
 
-app = FastAPI()
-
-# Permitir peticiones desde cualquier origen (útil para desarrollo)
+# Middleware CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -57,6 +52,54 @@ async def analyze_voice(file: UploadFile = File(...)):
     }
 
     return feedback
+
+# Registrar lectura en CSV
+@app.post("/register-reading")
+async def register_reading(request: Request):
+    data = await request.json()
+    filepath = "data/readings.csv"
+    file_exists = os.path.isfile(filepath)
+
+    with open(filepath, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow([
+                "id", "timestamp", "user_id", "text_id",
+                "words_per_minute", "error_rate", "fluency_score", "attention_score", "label"
+            ])
+        writer.writerow([
+            data["id"],
+            datetime.utcnow().isoformat(),
+            data["user_id"],
+            data["text_id"],
+            data["words_per_minute"],
+            data["error_rate"],
+            data["fluency_score"],
+            data["attention_score"],
+            data["label"]
+        ])
+    return {"status": "saved"}
+
+# Registrar lectura en JSON
+@app.post("/register-reading-json")
+async def register_reading_json(request: Request):
+    data = await request.json()
+    data["timestamp"] = datetime.utcnow().isoformat()
+    filepath = "data/readings.json"
+
+    try:
+        with open(filepath, "r") as f:
+            readings = json.load(f)
+    except FileNotFoundError:
+        readings = []
+
+    readings.append(data)
+
+    with open(filepath, "w") as f:
+        json.dump(readings, f, indent=2)
+
+    return {"status": "saved"}
+
 
 
 
