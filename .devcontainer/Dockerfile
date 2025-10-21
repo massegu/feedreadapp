@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y ffmpeg
 RUN pip install openai-whisper
 
 # Instalar PostgreSQL
-RUN apt-get update && \
-    apt-get install -y postgresql postgresql-contrib && 
+RUN apt-get update && apt-get install -y postgresql-client
 
 WORKDIR /workspaces/feedreadapp
