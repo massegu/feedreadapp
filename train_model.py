@@ -60,6 +60,7 @@ plt.tight_layout()
 plt.savefig("data/feature_importance.png")
 
 # 💾 Guardar modelo y codificador
+import joblib
 joblib.dump(clf, "data/model.pkl")
 joblib.dump(le, "data/label_encoder.pkl")
 print("✅ Modelo y codificador guardados en data/")
