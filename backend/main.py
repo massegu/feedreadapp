@@ -103,6 +103,26 @@ async def register_reading_json(request: Request):
 
     return {"status": "saved"}
 
+#Registrar atención (coordenadas de mirada)
+
+@app.post("/register-attention")
+async def register_attention(request: Request):
+    data = await request.json()
+    data["timestamp"] = datetime.utcnow().isoformat()
+    filepath = "data/attention.json"
+
+    try:
+        with open(filepath, "r") as f:
+            attention_data = json.load(f)
+    except FileNotFoundError:
+        attention_data = []
+
+    attention_data.append(data)
+
+    with open(filepath, "w") as f:
+        json.dump(attention_data, f, indent=2)
+
+    return {"status": "saved"}
 
 
 
