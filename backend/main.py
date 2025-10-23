@@ -124,6 +124,20 @@ async def register_attention(request: Request):
 
     return {"status": "saved"}
 
+model = joblib.load("data/model.pkl")
+
+@app.post("/predict-reading")
+async def predict_reading(request: Request):
+    data = await request.json()
+    features = [
+        data["words_per_minute"],
+        data["error_rate"],
+        data["fluency_score"],
+        data["attention_score"]
+    ]
+    label = model.predict([features])[0]
+    confidence = max(model.predict_proba([features])[0])
+    return {"label": label, "confidence": round(confidence, 2)}
 
 
 
