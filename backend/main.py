@@ -9,6 +9,9 @@ import tempfile
 import os
 
 app = FastAPI()
+@app.get("/")
+def read_root():
+    return {"message": "Backend activo"}
 
 # Middleware CORS
 app.add_middleware(
