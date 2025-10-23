@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-
+import ReadingResultCard from "./ReadingResultCard";
 
 const texts = [
   { id: "txt001", level: "Fácil", content: "El sol brilla en el cielo azul." },
@@ -14,6 +14,9 @@ export default function ReadingSession() {
   const chunksRef = useRef([]);
   const videoRef = useRef(null);
 
+  const [prediction, setPrediction] = useState(null);
+  const [gazeData, setGazeData] = useState([]);
+
   useEffect(() => {
   const loadWebGazer = async () => {
     await import("https://webgazer.cs.brown.edu/webgazer.js");
@@ -21,8 +24,7 @@ export default function ReadingSession() {
       window.webgazer.setRegression("ridge")
         .setGazeListener((data, timestamp) => {
           if (data) {
-            console.log("Gaze:", data.x, data.y, timestamp);
-            // Aquí puedes guardar en array o enviar al backend
+            setGazeData(prev => [...prev, { x: data.x, y: data.y, timestamp }]);
           }
         }).begin();
     }
@@ -46,18 +48,53 @@ export default function ReadingSession() {
       if (e.data.size > 0) chunksRef.current.push(e.data);
     };
 
-    mediaRecorderRef.current.onstop = async () => {
-      const blob = new Blob(chunksRef.current, { type: "audio/wav" });
-      const formData = new FormData();
-      formData.append("file", blob, "reading.wav");
+  mediaRecorderRef.current.onstop = async () => {
+  const blob = new Blob(chunksRef.current, { type: "audio/wav" });
+  const formData = new FormData();
+  formData.append("file", blob, "reading.wav");
 
-      const res = await fetch("http://localhost:8000/analyze-voice", {
-        method: "POST",
-        body: formData
-      });
+  const res = await fetch("http://localhost:8000/analyze-voice", {
+    method: "POST",
+    body: formData
+  });
 
-      const result = await res.json();
-      console.log("Análisis:", result);
+  const result = await res.json();
+  console.log("Análisis:", result);
+
+  const predictionRes = await fetch("http://localhost:8000/predict-reading", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    words_per_minute: result.words_per_minute,
+    error_rate: result.error_rate,
+    fluency_score: result.fluency_score,
+    attention_score: result.attention_score
+  })
+});
+
+const predictionData = await predictionRes.json();
+setPrediction(predictionData);
+
+
+  // 🧠 Enviar métricas al backend
+  await fetch("http://localhost:8000/register-reading", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      words_per_minute: result.words_per_minute,
+      error_rate: result.error_rate,
+      fluency_score: result.fluency_score,
+      attention_score: result.attention_score,
+      label: "normal",
+      text_id: texts[currentIndex].id,
+      text_level: texts[currentIndex].level,
+      text_content: texts[currentIndex].content// o "desconocido" si no tienes diagnóstico
+    })
+  });
+
+  console.log("✅ Lectura registrada");
+};
+
       // Aquí puedes enviar también los datos de WebGazer y registrar la lectura
     };
 
@@ -90,6 +127,8 @@ export default function ReadingSession() {
       {currentIndex < texts.length - 1 && !recording && (
         <button onClick={nextText}>➡️ Siguiente texto</button>
       )}
-    </div>
+      {prediction && (
+        <ReadingResultCard prediction={prediction} gazeData={gazeData} />
+      )}
+  </div>
   );
-}
