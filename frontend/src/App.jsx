@@ -4,6 +4,7 @@ import TextReader from './components/TextReader';
 import VoiceRecorder from './components/VoiceRecorder';
 import EyeTracker from './components/EyeTracker';
 import UserCounter from './components/UserCounter';
+import ReadingSession from "./components/ReadingSession";
 
 const sampleText = `La lectura es una habilidad fundamental que permite acceder al conocimiento, desarrollar el pensamiento crítico y disfrutar de la imaginación.`;
 
@@ -15,6 +16,7 @@ const App = () => {
       <VoiceRecorder />
       <EyeTracker />
       <UserCounter/>
+      <ReadingSession/>
     </div>
   );
 };
