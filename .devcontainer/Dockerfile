@@ -8,6 +8,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 # ffmpeg
 RUN apt-get update && apt-get install -y ffmpeg
 
+# Copia requirements y lo instala
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expone el puerto para FastAPI
+EXPOSE 8000
+
 # Whisper
 RUN pip install openai-whisper
 
