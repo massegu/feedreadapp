@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import csv
 import json
+import joblib
 import whisper
 import tempfile
 import os
