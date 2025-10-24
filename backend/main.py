@@ -127,18 +127,39 @@ async def register_attention(request: Request):
 
 model = joblib.load("data/model.pkl")
 
+import os
+
 @app.post("/predict-reading")
-async def predict_reading(request: Request):
-    data = await request.json()
+async def predict_reading(data: dict):
+    model_path = "data/model.pkl"
+
+    # Si el modelo no existe, devolver etiqueta neutral
+    if not os.path.exists(model_path):
+        return {
+            "label": "desconocido",
+            "confidence": 0.0,
+            "note": "Modelo no entrenado aún. Registra lecturas para generar datos y luego ejecuta train_model.py"
+        }
+
+    # Si el modelo existe, hacer la predicción
+    with open(model_path, "rb") as f:
+        model = pickle.load(f)
+
     features = [
         data["words_per_minute"],
         data["error_rate"],
         data["fluency_score"],
         data["attention_score"]
     ]
-    label = model.predict([features])[0]
+
+    prediction = model.predict([features])[0]
     confidence = max(model.predict_proba([features])[0])
-    return {"label": label, "confidence": round(confidence, 2)}
+
+    return {
+        "label": prediction,
+        "confidence": confidence
+    }
+
 
 
 
