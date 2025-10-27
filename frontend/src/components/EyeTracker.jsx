@@ -1,21 +1,19 @@
-// EyeTracker.jsx
 import React, { useEffect } from 'react';
 import webgazer from 'webgazer-ts';
 
 const EyeTracker = () => {
   useEffect(() => {
-    const loadWebGazer = async () => {
-      await import('webgazer-ts');
-      window.webgazer.setRegression('ridge')
-        .setGazeListener((data, timestamp) => {
-          if (data) {
-            console.log(`Gaze at x:${data.x}, y:${data.y}`);
-          }
-        })
-        .begin();
+    webgazer.setRegression('ridge')
+      .setGazeListener((data, timestamp) => {
+        if (data) {
+          console.log(`Gaze at x:${data.x}, y:${data.y}`);
+        }
+      })
+      .begin();
+
+    return () => {
+      webgazer.end();
     };
-    loadWebGazer();
-    return () => window.webgazer.end();
   }, []);
 
   return (
