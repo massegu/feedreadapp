@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import webgazer from 'webgazer-ts';
+import webgazer from 'webgazer';
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 
