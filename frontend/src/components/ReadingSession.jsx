@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReadingResultCard from "./ReadingResultCard";
+import "./ReadingSession.css";
+
 
 const texts = [
   { id: "txt001", level: "Fácil", content: "El sol brilla en el cielo azul." },
