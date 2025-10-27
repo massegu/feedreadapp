@@ -125,7 +125,7 @@ async def register_attention(request: Request):
 
     return {"status": "saved"}
 
-model = joblib.load("data/model.pkl")
+# model = joblib.load("data/model.pkl")
 
 import os
 
