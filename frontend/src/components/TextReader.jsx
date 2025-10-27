@@ -1,10 +1,3 @@
-
----
-
-## 🧩 Módulo de lectura silenciosa – `TextReader.jsx`
-
-```jsx
-// TextReader.jsx
 import React, { useEffect, useState } from 'react';
 
 const TextReader = ({ text }) => {
@@ -12,10 +5,13 @@ const TextReader = ({ text }) => {
   const [duration, setDuration] = useState(null);
 
   useEffect(() => {
-    setStartTime(Date.now());
+    const start = Date.now();
+    setStartTime(start);
+
     return () => {
-      const endTime = Date.now();
-      setDuration(((endTime - startTime) / 1000).toFixed(2));
+      const end = Date.now();
+      const seconds = ((end - start) / 1000).toFixed(2);
+      setDuration(seconds);
     };
   }, []);
 
@@ -29,3 +25,4 @@ const TextReader = ({ text }) => {
 };
 
 export default TextReader;
+
