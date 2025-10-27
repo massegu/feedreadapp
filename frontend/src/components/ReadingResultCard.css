@@ -59,3 +59,11 @@
   font-size: 0.95em;
   margin-bottom: 4px;
 }
+.model-alert {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #fff3cd;
+  border-left: 5px solid #ffc107;
+  border-radius: 8px;
+  font-size: 0.95em;
+}
