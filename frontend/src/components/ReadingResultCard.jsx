@@ -28,6 +28,12 @@ export default function ReadingResultCard({ prediction, gazeData }) {
     <div className="reading-result-card" style={{ borderColor: color }}>
       <h3 style={{ color }}>{icon} Perfil lector: {label}</h3>
       <p><strong>Confianza:</strong> {(confidence * 100).toFixed(1)}%</p>
+      {prediction.label === "desconocido" && (
+        <div className="model-alert">
+          ⚠️ El modelo aún no está entrenado. Esta etiqueta es provisional.
+          Registra más lecturas y ejecuta <code>train_model.py</code> para activar la predicción personalizada.
+        </div>
+    )}
 
       <div className="legend">
         <h4>🧠 Interpretación didáctica</h4>
