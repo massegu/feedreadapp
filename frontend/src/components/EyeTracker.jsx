@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import webgazer from 'webgazer-ts';
+import webgazer from 'webgazer';
 
 const EyeTracker = () => {
   useEffect(() => {
