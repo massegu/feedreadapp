@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import webgazer from 'webgazer';
+import { loadWebgazer} from '../hooks/useWebgazer';
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 
@@ -20,19 +20,22 @@ export default function ReadingSession() {
   const [prediction, setPrediction] = useState(null);
   const [gazeData, setGazeData] = useState([]);
     
-  useEffect(() => {
+ useEffect(() => {
+  loadWebgazer().then((webgazer) => {
     webgazer.setRegression("ridge")
       .setGazeListener((data, timestamp) => {
         if (data) {
           setGazeData(prev => [...prev, { x: data.x, y: data.y, timestamp }]);
-       }
+        }
       })
       .begin();
+  });
 
-    return () => {
-     webgazer.end();
-    };
+  return () => {
+    if (window.webgazer) window.webgazer.end();
+  };
 }, []);
+
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
