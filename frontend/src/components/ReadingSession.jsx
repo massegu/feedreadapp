@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import webgazer from 'webgazer-ts';
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 
@@ -18,27 +19,19 @@ export default function ReadingSession() {
 
   const [prediction, setPrediction] = useState(null);
   const [gazeData, setGazeData] = useState([]);
-
+    
   useEffect(() => {
-  const loadWebGazer = async () => {
-    await import("https://webgazer.cs.brown.edu/webgazer.js");
-    if (window.webgazer) {
-      window.webgazer.setRegression("ridge")
-        .setGazeListener((data, timestamp) => {
-          if (data) {
-            setGazeData(prev => [...prev, { x: data.x, y: data.y, timestamp }]);
-          }
-        }).begin();
-    }
-  };
+    webgazer.setRegression("ridge")
+      .setGazeListener((data, timestamp) => {
+        if (data) {
+          setGazeData(prev => [...prev, { x: data.x, y: data.y, timestamp }]);
+       }
+      })
+      .begin();
 
-  loadWebGazer();
-
-  return () => {
-    if (window.webgazer) {
-      window.webgazer.end();
-    }
-  };
+    return () => {
+     webgazer.end();
+    };
 }, []);
 
   const startRecording = async () => {
