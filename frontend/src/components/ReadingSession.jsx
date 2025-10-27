@@ -123,3 +123,4 @@ setPrediction(predictionData);
       )}
   </div>
   );
+}
