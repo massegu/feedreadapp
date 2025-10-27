@@ -90,13 +90,9 @@ setPrediction(predictionData);
   console.log("✅ Lectura registrada");
 };
 
-      // Aquí puedes enviar también los datos de WebGazer y registrar la lectura
-    };
-
     mediaRecorderRef.current.start();
     setRecording(true);
   };
-
   const stopRecording = () => {
     mediaRecorderRef.current.stop();
     setRecording(false);
