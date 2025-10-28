@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import API_BASE_URL from "../config/api";
 import { loadWebgazer} from '../hooks/useWebgazer';
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
@@ -51,15 +52,14 @@ export default function ReadingSession() {
   const formData = new FormData();
   formData.append("file", blob, "reading.wav");
 
-  const res = await fetch("http://localhost:8000/analyze-voice", {
+  const res = await fetch(`${API_BASE_URL}/analyze-voice`,{ 
     method: "POST",
     body: formData
   });
 
-  const result = await res.json();
-  console.log("Análisis:", result);
+  console.log("Análisis:", (await res.json()));
 
-  const predictionRes = await fetch("http://localhost:8000/predict-reading", {
+  const predictionRes = await fetch(`${API_BASE_URL}/predict-reading`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -70,25 +70,27 @@ export default function ReadingSession() {
   })
 });
 
+
 const predictionData = await predictionRes.json();
 setPrediction(predictionData);
 
 
   // 🧠 Enviar métricas al backend
-  await fetch("http://localhost:8000/register-reading", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      words_per_minute: result.words_per_minute,
-      error_rate: result.error_rate,
-      fluency_score: result.fluency_score,
-      attention_score: result.attention_score,
-      label: "normal",
-      text_id: texts[currentIndex].id,
-      text_level: texts[currentIndex].level,
-      text_content: texts[currentIndex].content// o "desconocido" si no tienes diagnóstico
-    })
-  });
+  await fetch(`${API_BASE_URL}/register-reading`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    words_per_minute: result.words_per_minute,
+    error_rate: result.error_rate,
+    fluency_score: result.fluency_score,
+    attention_score: result.attention_score,
+    label: "normal",
+    text_id: texts[currentIndex].id,
+    text_level: texts[currentIndex].level,
+    text_content: texts[currentIndex].content
+  })
+});
+
 
   console.log("✅ Lectura registrada");
 };
