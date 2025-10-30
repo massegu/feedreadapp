@@ -3,22 +3,14 @@ import API_BASE_URL from "../config/api";
 import { loadWebgazer} from '../hooks/useWebgazer';
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
+import StatusBar from "./StatusBar";
 
 const texts = [
   { id: "txt001", level: "Fácil", content: "El sol brilla en el cielo azul." },
   { id: "txt002", level: "Intermedio", content: "Los animales del bosque se reúnen cada mañana para buscar alimento." },
   { id: "txt003", level: "Difícil", content: "La neuroplasticidad permite que el cerebro reorganice sus conexiones sinápticas en respuesta a estímulos." }
 ];
-return (
-  <div className="reading-container">
-    {texts.map((text) => (
-      <div key={text.id} className="reading-text">
-        <h3>{text.level}</h3>
-        <p>{text.content}</p>
-      </div>
-    ))}
-  </div>
-);
+
 export default function ReadingSession() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recording, setRecording] = useState(false);
@@ -28,7 +20,7 @@ export default function ReadingSession() {
 
   const [prediction, setPrediction] = useState(null);
   const [gazeData, setGazeData] = useState([]);
-    
+}   
  useEffect(() => {
   loadWebgazer().then((webgazer) => {
     webgazer.setRegression("ridge")
@@ -87,22 +79,23 @@ export default function ReadingSession() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorderRef.current = new MediaRecorder(stream);
     chunksRef.current = [];
+    setStatus((prev) => ({ ...prev, voiceRecorded: false })); // Reinicia estado
 
     mediaRecorderRef.current.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
     };
 
-  mediaRecorderRef.current.onstop = async () => {
-  const blob = new Blob(chunksRef.current, { type: "audio/wav" });
-  const formData = new FormData();
-  formData.append("file", blob, "reading.wav");
+    mediaRecorderRef.current.onstop = async () => {
+    const blob = new Blob(chunksRef.current, { type: "audio/wav" });
+    const formData = new FormData();
+    formData.append("file", blob, "reading.wav");
 
-  const res = await fetch(`${API_BASE_URL}/analyze-voice`,{ 
-    method: "POST",
-    body: formData
+    const res = await fetch(`${API_BASE_URL}/analyze-voice`,{ 
+      method: "POST",
+      body: formData
   });
-
-  console.log("Análisis:", (await res.json()));
+  const result = await res.json();
+  console.log("Análisis:", result);
 
   const predictionRes = await fetch(`${API_BASE_URL}/predict-reading`, {
   method: "POST",
@@ -115,13 +108,12 @@ export default function ReadingSession() {
   })
 });
 
-
 const predictionData = await predictionRes.json();
 setPrediction(predictionData);
-
+handleVoiceRecorded(); // ✅ Esto activa el estado visual
 
   // 🧠 Enviar métricas al backend
-  await fetch(`${API_BASE_URL}/register-reading`, {
+await fetch(`${API_BASE_URL}/register-reading`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -132,14 +124,15 @@ setPrediction(predictionData);
     label: "normal",
     text_id: texts[currentIndex].id,
     text_level: texts[currentIndex].level,
-    text_content: texts[currentIndex].content
+    text_content: texts[currentIndex].content,
+    face_detected: status.faceDetected,
+    eye_tracking_active: status.eyeTrackingActive,
+    voice_recorded: status.voiceRecorded
   })
 });
 
-
   console.log("✅ Lectura registrada");
 };
-
     mediaRecorderRef.current.start();
     setRecording(true);
   };
@@ -151,10 +144,42 @@ setPrediction(predictionData);
   const nextText = () => {
     if (currentIndex < texts.length - 1) {
       setCurrentIndex(currentIndex + 1);
-    }
+  };
+    // Ejemplo: grabación de voz (cuando se complete)
+  const handleVoiceRecorded = () => {
+    setStatus((prev) => ({ ...prev, voiceRecorded: true }));
   };
 
+  const [status, setStatus] = useState({
+  faceDetected: false,
+  eyeTrackingActive: false,
+  voiceRecorded: false
+});
+
+// Actualiza estos estados según los eventos de WebGazer y grabación
+useEffect(() => {
+  // Ejemplo: detección facial
+  const checkFace = () => {
+    const overlay = document.getElementById("webgazerFaceOverlay");
+    setStatus((prev) => ({ ...prev, faceDetected: !!overlay }));
+  };
+
+  // Ejemplo: seguimiento ocular
+  const checkEyeTracking = () => {
+    setStatus((prev) => ({ ...prev, eyeTrackingActive: webgazer.isReady() }));
+  };
+
+  // Llamadas periódicas
+  const interval = setInterval(() => {
+    checkFace();
+    checkEyeTracking();
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
+
   return (
+    <>
     <div>
       <h2>Texto {currentIndex + 1} — Nivel: {texts[currentIndex].level}</h2>
       <p style={{ fontSize: "1.2em", lineHeight: "1.6" }}>{texts[currentIndex].content}</p>
@@ -171,6 +196,8 @@ setPrediction(predictionData);
       {prediction && (
         <ReadingResultCard prediction={prediction} gazeData={gazeData} />
       )}
-  </div>
-  );
+    </div>
+    {recording && <StatusBar status={status} />}
+  </>
+);
 }
