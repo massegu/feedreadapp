@@ -1,0 +1,18 @@
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem;
+  background-color: #222;
+  color: white;
+  font-size: 0.9rem;
+  z-index: 9999;
+}
+
+.status-item {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+}
