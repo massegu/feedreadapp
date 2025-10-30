@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import API_BASE_URL from "../config/api";
 import { useEyeGestures }from "../hooks/useEyeGestures";
+import EyeTracker from "./EyeTracker";
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 import StatusBar from "./StatusBar";
