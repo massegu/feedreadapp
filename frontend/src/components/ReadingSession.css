@@ -40,3 +40,19 @@
 .session-buttons button:hover {
   background-color: #1976D2;
 }
+#webgazerFaceOverlay,
+#webgazerFaceFeedbackBox {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 180px;
+  height: 135px;
+  z-index: 9998;
+  pointer-events: none;
+}
+.reading-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: justify;
+}
