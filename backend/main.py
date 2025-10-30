@@ -10,6 +10,11 @@ import whisper
 import tempfile
 import os
 
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+
 app = FastAPI()
 @app.get("/")
 def read_root():
@@ -62,7 +67,7 @@ async def analyze_voice(file: UploadFile = File(...)):
 @app.post("/register-reading")
 async def register_reading(request: Request):
     data = await request.json()
-    filepath = "data/readings.csv"
+    filepath = os.path.join(BASE_DIR, "data", "readings.csv")
     file_exists = os.path.isfile(filepath)
 
     with open(filepath, "a", newline="") as f:
@@ -90,7 +95,7 @@ async def register_reading(request: Request):
 async def register_reading_json(request: Request):
     data = await request.json()
     data["timestamp"] = datetime.utcnow().isoformat()
-    filepath = "data/readings.json"
+    filepath = os.path.join(BASE_DIR, "data", "readings.json")
 
     try:
         with open(filepath, "r") as f:
@@ -111,7 +116,7 @@ async def register_reading_json(request: Request):
 async def register_attention(request: Request):
     data = await request.json()
     data["timestamp"] = datetime.utcnow().isoformat()
-    filepath = "data/attention.json"
+    filepath = os.path.join(BASE_DIR, "data", "attention.json")
 
     try:
         with open(filepath, "r") as f:
@@ -132,7 +137,7 @@ import os
 
 @app.post("/predict-reading")
 async def predict_reading(data: dict):
-    model_path = "data/model.pkl"
+    model_path = os.path.join(BASE_DIR, "data", "model.pkl")
 
     # Si el modelo no existe, devolver etiqueta neutral
     if not os.path.exists(model_path):
