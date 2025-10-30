@@ -142,8 +142,9 @@ export default function ReadingSession() {
           <ReadingResultCard prediction={prediction} gazeData={gazeData} />
         )}
       </div>
-
+      
       {recording && <StatusBar status={status} />}
+      {recording && <EyeTracker gazeData={gazeData} />}
     </>
   );
 }
