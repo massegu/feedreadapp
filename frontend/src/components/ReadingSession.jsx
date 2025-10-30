@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import API_BASE_URL from "../config/api";
-import { loadWebgazer } from "../hooks/useWebgazer";
+import { useEyeGestures }from "../hooks/useEyeGestures";
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 import StatusBar from "./StatusBar";
@@ -24,76 +24,25 @@ export default function ReadingSession() {
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
-  const videoRef = useRef(null);
+  
+  // ✅ Integración con EyeGestures
+  const { isTracking } = useEyeGestures((data) => {
+    if (data?.x && data?.y) {
+      setGazeData((prev) => [...prev, { x: data.x, y: data.y, timestamp: Date.now() }]);
+    }
+  });
 
-  // Inicializar WebGazer y configurar video
+   // ✅ Actualizar estado visual de seguimiento ocular
   useEffect(() => {
-    loadWebgazer().then((webgazer) => {
-      webgazer.setRegression("ridge")
-        .setGazeListener((data, timestamp) => {
-          if (data) {
-            console.log(`Gaze at x:${data.x}, y:${data.y}`);
-          }
-        })
-        .begin();
-
-      const interval = setInterval(() => {
-        const video = document.getElementById("webgazerVideoFeed");
-        if (video) {
-          video.style.position = "fixed";
-          video.style.bottom = "20px";
-          video.style.right = "20px";
-          video.style.width = "180px";
-          video.style.zIndex = "9999";
-          video.style.cursor = "move";
-          video.setAttribute("draggable", "true");
-
-          video.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData("text/plain", null);
-            const rect = video.getBoundingClientRect();
-            video.dataset.offsetX = e.clientX - rect.left;
-            video.dataset.offsetY = e.clientY - rect.top;
-          });
-
-          document.addEventListener("dragover", (e) => e.preventDefault());
-          document.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const offsetX = parseInt(video.dataset.offsetX || "0", 10);
-            const offsetY = parseInt(video.dataset.offsetY || "0", 10);
-            video.style.left = `${e.clientX - offsetX}px`;
-            video.style.top = `${e.clientY - offsetY}px`;
-            video.style.right = "auto";
-            video.style.bottom = "auto";
-          });
-
-          clearInterval(interval);
-        }
-      }, 500);
-    });
-
-    return () => {
-      if (window.webgazer) window.webgazer.end();
-    };
-  }, []);
-
-  // Actualizar estados visuales
-  useEffect(() => {
-    const checkFace = () => {
-      const overlay = document.getElementById("webgazerFaceOverlay");
-      setStatus((prev) => ({ ...prev, faceDetected: !!overlay }));
-    };
-
-    const checkEyeTracking = () => {
-      setStatus((prev) => ({ ...prev, eyeTrackingActive: window.webgazer?.isReady() }));
-    };
-
     const interval = setInterval(() => {
-      checkFace();
-      checkEyeTracking();
+      setStatus((prev) => ({
+        ...prev,
+        eyeTrackingActive: isTracking()
+      }));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isTracking]);
 
   const handleVoiceRecorded = () => {
     setStatus((prev) => ({ ...prev, voiceRecorded: true }));
@@ -175,7 +124,7 @@ export default function ReadingSession() {
 
   return (
     <>
-      <div>
+      <div className="reading-container">
         <h2>Texto {currentIndex + 1} — Nivel: {texts[currentIndex].level}</h2>
         <p style={{ fontSize: "1.2em", lineHeight: "1.6" }}>{texts[currentIndex].content}</p>
 

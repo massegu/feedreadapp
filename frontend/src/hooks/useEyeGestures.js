@@ -6,6 +6,7 @@ export function useEyeGestures(onGaze) {
 
   useEffect(() => {
     async function init() {
+      if (eyeRef.current) return; // ✅ evita reinicialización
       const EyeGestures = await import("eyegestures"); // o la forma que indique su SDK
       const eye = await EyeGestures.init();
       eye.on("gaze", onGaze);
@@ -20,6 +21,7 @@ export function useEyeGestures(onGaze) {
   }, [onGaze]);
 
   return {
-    isTracking: () => eyeRef.current?.isTracking?.() ?? false
+    isTracking: () => eyeRef.current?.isTracking?.() ?? false,
+    eye: eyeRef.current
   };
 }
