@@ -4,13 +4,21 @@ import { loadWebgazer} from '../hooks/useWebgazer';
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 
-<div className="reading-container">
 const texts = [
   { id: "txt001", level: "Fácil", content: "El sol brilla en el cielo azul." },
   { id: "txt002", level: "Intermedio", content: "Los animales del bosque se reúnen cada mañana para buscar alimento." },
   { id: "txt003", level: "Difícil", content: "La neuroplasticidad permite que el cerebro reorganice sus conexiones sinápticas en respuesta a estímulos." }
 ];
-</div>
+return (
+  <div className="reading-container">
+    {texts.map((text) => (
+      <div key={text.id} className="reading-text">
+        <h3>{text.level}</h3>
+        <p>{text.content}</p>
+      </div>
+    ))}
+  </div>
+);
 export default function ReadingSession() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recording, setRecording] = useState(false);
