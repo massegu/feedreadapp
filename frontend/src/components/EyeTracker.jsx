@@ -1,4 +1,3 @@
-// EyeTracker.jsx
 import React from "react";
 
 export default function EyeTracker({ gazeData = [] }) {
@@ -24,3 +23,4 @@ export default function EyeTracker({ gazeData = [] }) {
     </div>
   );
 }
+
