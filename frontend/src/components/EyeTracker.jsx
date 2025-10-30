@@ -1,8 +1,8 @@
 // EyeTracker.jsx
 import React from "react";
 
-export default function EyeTracker({ gazeData }) {
-  const last = gazeData[gazeData.length - 1];
+export default function EyeTracker({ gazeData = [] }) {
+  const last = gazeData.length > 0 ? gazeData[gazeData.length - 1] : null;
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, zIndex: 9999 }}>
@@ -24,4 +24,3 @@ export default function EyeTracker({ gazeData }) {
     </div>
   );
 }
-
