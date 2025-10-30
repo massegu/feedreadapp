@@ -50,8 +50,8 @@
   align-items: center; /* ✅ Centra horizontalmente */
   text-align: center;   /* ✅ Centra el texto */
 }
-#webgazerFaceOverlay,
-#webgazerFaceFeedbackBox {
+webgazerFaceOverlay,
+webgazerFaceFeedbackBox {
   display: none !important;
   position: fixed !important;
   bottom: 20px !important;
@@ -63,7 +63,7 @@
   background-color: rgba(0, 0, 0, 0.3) !important; /* ✅ fondo semitransparente */
 }
 
-#webgazerVideoFeed {
+webgazerVideoFeed {
   position: fixed !important;
   bottom: 20px !important;
   right: 20px !important;
