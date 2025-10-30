@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import API_BASE_URL from "../config/api";
-import { useEyeGestures }from "../hooks/useEyeGestures";
+import { useWebGazer } from "../hooks/useWebGazer";
 import EyeTracker from "./EyeTracker";
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
@@ -25,15 +25,15 @@ export default function ReadingSession() {
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
-  
-  // ✅ Integración con EyeGestures
-  const { isTracking } = useEyeGestures((data) => {
+
+  // ✅ Integración con WebGazer
+  const { isTracking } = useWebGazer((data) => {
     if (data?.x && data?.y) {
       setGazeData((prev) => [...prev, { x: data.x, y: data.y, timestamp: Date.now() }]);
     }
   });
 
-   // ✅ Actualizar estado visual de seguimiento ocular
+  // ✅ Actualizar estado visual de seguimiento ocular
   useEffect(() => {
     const interval = setInterval(() => {
       setStatus((prev) => ({
@@ -143,7 +143,7 @@ export default function ReadingSession() {
           <ReadingResultCard prediction={prediction} gazeData={gazeData} />
         )}
       </div>
-      
+
       {recording && <StatusBar status={status} />}
       {recording && <EyeTracker gazeData={gazeData} />}
     </>
