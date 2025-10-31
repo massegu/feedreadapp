@@ -10,13 +10,38 @@ export function useWebGazer(onGaze) {
       await webgazer.showVideoPreview(true).showPredictionPoints(true).begin();
       gazeRef.current = webgazer;
 
+      const waitUntilVideoReady = () =>
+        new Promise((resolve) => {
+          const check = () => {
+            const video = document.getElementById("webgazerVideoFeed");
+      if (video?.videoWidth > 0 && video?.videoHeight > 0) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+
+await webgazer.showVideoPreview(true).showPredictionPoints(true).begin();
+await waitUntilVideoReady();
+
+webgazer.setGazeListener((data, timestamp) => {
+  if (data?.x && data?.y) {
+    onGaze(data);
+  }
+});
+
+await waitUntilVideoReady();
+
+
       webgazer.setGazeListener((data, timestamp) => {
         if (data?.x && data?.y) {
           onGaze(data);
         }
       });
 
-      // 🔍 Vigilancia activa del video
+      // 🔁 Vigilancia activa cada 3 segundos
       monitorRef.current = setInterval(() => {
         const video = document.getElementById("webgazerVideoFeed");
         if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
@@ -25,7 +50,7 @@ export function useWebGazer(onGaze) {
             webgazer.showVideoPreview(true).showPredictionPoints(true).begin();
           });
         }
-      }, 3000); // cada 3 segundos
+      }, 3000);
     }
 
     startWebGazer();
