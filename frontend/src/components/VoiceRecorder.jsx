@@ -25,7 +25,9 @@ const VoiceRecorder = () => {
     const formData = new FormData();
     formData.append('file', audioBlob, 'recording.wav');
 
-    await fetch('http://localhost:8000/analyze-voice', {
+    const apiUrl = `https://${window.location.hostname.replace("3000", "8000")}/analyze-voice`;
+
+    await fetch(apiUrl, {
       method: 'POST',
       body: formData,
     });
