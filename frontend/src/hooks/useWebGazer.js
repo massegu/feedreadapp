@@ -4,21 +4,38 @@ import webgazer from "webgazer";
 export function useWebGazer(onGaze) {
   const gazeRef = useRef(null);
 
-  useEffect(() => {
+useEffect(() => {
+  async function startWebGazer() {
+    await webgazer.begin();
+
+    const video = document.getElementById("webgazerVideoFeed");
+    const waitUntilReady = () =>
+      new Promise((resolve) => {
+        const check = () => {
+          if (video?.videoWidth > 0 && video?.videoHeight > 0) {
+            resolve();
+          } else {
+            setTimeout(check, 100);
+          }
+        };
+        check();
+      });
+
+    await waitUntilReady();
+
     webgazer.setGazeListener((data, timestamp) => {
-      if (data) {
-        console.log("Gaze data:", data); // 👈 Verifica que esto aparezca
-        onGaze(data);
-      }
+      if (data) onGaze(data);
     });
 
-    webgazer.showVideoPreview(false).showPredictionPoints(true).begin();
-    gazeRef.current = webgazer;
+    webgazer.showVideoPreview(true).showPredictionPoints(true);
+  }
 
-    return () => {
-      webgazer.end();
-    };
-  }, [onGaze]);
+  startWebGazer();
+
+  return () => {
+    webgazer.end();
+  };
+}, [onGaze]);
 
   return {
     isTracking: () => gazeRef.current?.isReady ?? false
