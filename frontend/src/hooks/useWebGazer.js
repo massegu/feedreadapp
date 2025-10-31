@@ -3,43 +3,44 @@ import webgazer from "webgazer";
 
 export function useWebGazer(onGaze) {
   const gazeRef = useRef(null);
+  const monitorRef = useRef(null);
 
-useEffect(() => {
-  async function startWebGazer() {
-    await webgazer.begin();
+  useEffect(() => {
+    async function startWebGazer() {
+      await webgazer.showVideoPreview(true).showPredictionPoints(true).begin();
+      gazeRef.current = webgazer;
 
-    const video = document.getElementById("webgazerVideoFeed");
-    const waitUntilReady = () =>
-      new Promise((resolve) => {
-        const check = () => {
-          if (video?.videoWidth > 0 && video?.videoHeight > 0) {
-            resolve();
-          } else {
-            setTimeout(check, 100);
-          }
-        };
-        check();
+      webgazer.setGazeListener((data, timestamp) => {
+        if (data?.x && data?.y) {
+          onGaze(data);
+        }
       });
 
-    await waitUntilReady();
+      // 🔍 Vigilancia activa del video
+      monitorRef.current = setInterval(() => {
+        const video = document.getElementById("webgazerVideoFeed");
+        if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+          console.warn("⚠️ Video inactivo. Reiniciando WebGazer...");
+          webgazer.end().then(() => {
+            webgazer.showVideoPreview(true).showPredictionPoints(true).begin();
+          });
+        }
+      }, 3000); // cada 3 segundos
+    }
 
-    webgazer.setGazeListener((data, timestamp) => {
-      if (data) onGaze(data);
-    });
+    startWebGazer();
 
-    webgazer.showVideoPreview(true).showPredictionPoints(true);
-  }
-
-  startWebGazer();
-
-  return () => {
-    webgazer.end();
-  };
-}, [onGaze]);
+    return () => {
+      clearInterval(monitorRef.current);
+      try {
+        webgazer.end();
+      } catch (err) {
+        console.warn("Error al cerrar WebGazer:", err);
+      }
+    };
+  }, [onGaze]);
 
   return {
     isTracking: () => gazeRef.current?.isReady ?? false
   };
 }
-
-
