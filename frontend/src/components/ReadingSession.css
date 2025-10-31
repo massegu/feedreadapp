@@ -50,30 +50,29 @@
   align-items: center; /* ✅ Centra horizontalmente */
   text-align: center;   /* ✅ Centra el texto */
 }
-webgazerFaceOverlay,
-webgazerFaceFeedbackBox {
-  display: none !important;
-  position: fixed !important;
-  bottom: 20px !important;
-  right: 220px !important; /* ✅ justo a la izquierda del video */
-  width: 180px !important;
-  height: 135px !important;
-  z-index: 9998 !important;
-  pointer-events: none !important;
-  background-color: rgba(0, 0, 0, 0.3) !important; /* ✅ fondo semitransparente */
-}
-
-webgazerVideoFeed {
+#webgazerVideoFeed {
   position: fixed !important;
   bottom: 20px !important;
   right: 20px !important;
-  top: auto !important;
-  left: auto !important;
   width: 180px !important;
   height: auto !important;
   z-index: 9999 !important;
   cursor: move !important;
-  background-color: black !important; /* ✅ evita fondo transparente */
+  background-color: black !important;
   display: block !important;
 }
+
+#webgazerFaceOverlay,
+#webgazerFaceFeedbackBox {
+  display: none !important;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 220px !important;
+  width: 180px !important;
+  height: 135px !important;
+  z-index: 9998 !important;
+  pointer-events: none !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
 
