@@ -2,6 +2,7 @@
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from pydub import AudioSegment
 import csv
 import json
 import pickle
@@ -43,13 +44,14 @@ model = whisper.load_model("base")
 @app.post("/analyze-voice")
 async def analyze_voice(file: UploadFile = File(...)):
     print("📥 Recibido archivo:", file.filename)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
- 
+
+
     # Convierte a WAV usando pydub
-    audio = AudioSegment.from_file(tmp_path)
-    wav_path = tmp_path.replace(".webm", ".wav")
+    audio = AudioSegment.from_file(tmp_path, format="mp3")
+    wav_path = tmp_path + ".wav"
     audio.export(wav_path, format="wav")
     os.remove(tmp_path)
 
@@ -123,24 +125,38 @@ async def register_reading_json(request: Request):
 async def register_attention(request: Request):
     data = await request.json()
     data["timestamp"] = datetime.utcnow().isoformat()
-    filepath = os.path.join(BASE_DIR, "data", "attention.json")
 
+    # Guardar en JSON
+    json_path = os.path.join(BASE_DIR, "data", "attention.json")
     try:
-        with open(filepath, "r") as f:
+        with open(json_path, "r") as f:
             attention_data = json.load(f)
     except FileNotFoundError:
         attention_data = []
 
     attention_data.append(data)
-
-    with open(filepath, "w") as f:
+    with open(json_path, "w") as f:
         json.dump(attention_data, f, indent=2)
+
+    # Guardar en CSV
+    csv_path = os.path.join(BASE_DIR, "data", "recordings.csv")
+    file_exists = os.path.isfile(csv_path)
+    with open(csv_path, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["timestamp", "x", "y", "text_id", "user_id"])
+        writer.writerow([
+            data["timestamp"],
+            data["x"],
+            data["y"],
+            data.get("text_id", ""),
+            data.get("user_id", "")
+        ])
 
     return {"status": "saved"}
 
 # model = joblib.load("data/model.pkl")
 
-import os
 
 @app.post("/predict-reading")
 async def predict_reading(data: dict):
