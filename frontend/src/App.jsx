@@ -1,8 +1,5 @@
 // frontend/src/App.jsx
 import React from 'react';
-import TextReader from './components/TextReader';
-import VoiceRecorder from './components/VoiceRecorder';
-import EyeTracker from './components/EyeTracker';
 import UserCounter from './components/UserCounter';
 import ReadingSession from "./components/ReadingSession";
 
@@ -12,9 +9,6 @@ const App = () => {
   return (
     <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
       <h1>Evaluador de Calidad Lectora</h1>
-      <TextReader text={sampleText} />
-      <VoiceRecorder />
-      <EyeTracker />
       <UserCounter/>
       <ReadingSession/>
     </div>
