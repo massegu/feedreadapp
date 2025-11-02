@@ -42,12 +42,20 @@ model = whisper.load_model("base")
 
 @app.post("/analyze-voice")
 async def analyze_voice(file: UploadFile = File(...)):
+    print("📥 Recibido archivo:", file.filename)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
-
-    result = model.transcribe(tmp_path)
+ 
+    # Convierte a WAV usando pydub
+    audio = AudioSegment.from_file(tmp_path)
+    wav_path = tmp_path.replace(".webm", ".wav")
+    audio.export(wav_path, format="wav")
     os.remove(tmp_path)
+
+    # Transcribe con Whisper
+    result = model.transcribe(wav_path)
+    os.remove(wav_path)
 
     text = result["text"]
     duration = result["segments"][-1]["end"] if result["segments"] else 0
@@ -60,9 +68,8 @@ async def analyze_voice(file: UploadFile = File(...)):
         "words_per_minute": wpm,
         "fluency": "Buena" if wpm > 120 else "Mejorable"
     }
-
     return feedback
-
+    
 # Registrar lectura en CSV
 @app.post("/register-reading")
 async def register_reading(request: Request):
