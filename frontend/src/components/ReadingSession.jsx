@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import API_BASE_URL from "../config/api";
-import { loadWebgazer } from "../hooks/useWebgazer";
+import MicRecorder from "mic-recorder-to-mp3";
 import ReadingResultCard from "./ReadingResultCard";
 import "./ReadingSession.css";
 import StatusBar from "./StatusBar";
@@ -15,6 +15,8 @@ export default function ReadingSession() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recording, setRecording] = useState(false);
   const [prediction, setPrediction] = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [duration, setDuration] = useState(null);
   const [gazeData, setGazeData] = useState([]);
   const [status, setStatus] = useState({
     faceDetected: false,
@@ -22,79 +24,56 @@ export default function ReadingSession() {
     voiceRecorded: false
   });
 
-  const mediaRecorderRef = useRef(null);
-  const chunksRef = useRef([]);
+  const recorder = useRef(new MicRecorder({ bitRate: 128 }));
 
-  // 🧠 Inicializa WebGazer
+  // 👁️ Inicializa EyeGesturesLite
   useEffect(() => {
-    loadWebgazer().then((webgazer) => {
-      webgazer.setRegression("ridge")
-        .setGazeListener((data) => {
-          if (data?.x && data?.y) {
-            setGazeData((prev) => [...prev, data]);
-          }
-        })
-        .begin();
-
-      const interval = setInterval(() => {
-        const video = document.getElementById("webgazerVideoFeed");
-        if (video) {
-          video.style.position = "fixed";
-          video.style.bottom = "20px";
-          video.style.right = "20px";
-          video.style.width = "180px";
-          video.style.zIndex = "9999";
-          video.style.cursor = "move";
-          video.setAttribute("draggable", "true");
-
-          clearInterval(interval);
-        }
-      }, 500);
+  if (window.EyeGestures) {
+    const tracker = new window.EyeGestures("video", (point, isCalibrating) => {
+      if (point?.[0] && point?.[1]) {
+        setGazeData((prev) => [...prev, { x: point[0], y: point[1], timestamp: Date.now() }]);
+        setStatus((prev) => ({ ...prev, eyeTrackingActive: true, faceDetected: true }));
+      }
     });
 
-    return () => {
-      if (window.webgazer) window.webgazer.end();
-    };
-  }, []);
+    tracker.init().then(() => {
+      tracker.start();
+    });
 
-  // 🔁 Actualiza estado visual cada segundo
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const overlay = document.getElementById("webgazerFaceOverlay");
-      setStatus((prev) => ({
-        ...prev,
-        faceDetected: !!overlay,
-        eyeTrackingActive: window.webgazer?.isReady() ?? false
-      }));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleVoiceRecorded = () => {
-    setStatus((prev) => ({ ...prev, voiceRecorded: true }));
-  };
+    return () => tracker.stop();
+  } else {
+    console.warn("EyeGestures no está disponible en window");
+  }
+}, []);
 
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorderRef.current = new MediaRecorder(stream);
-    chunksRef.current = [];
+    await recorder.current.start();
+    setRecording(true);
+    setStartTime(Date.now());
     setStatus((prev) => ({ ...prev, voiceRecorded: false }));
+  };
 
-    mediaRecorderRef.current.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
+  const stopRecording = async () => {
+    const [buffer, blob] = await recorder.current.stop().getMp3();
+    setRecording(false);
 
-    mediaRecorderRef.current.onstop = async () => {
-      const blob = new Blob(chunksRef.current, { type: "audio/wav" });
-      const formData = new FormData();
-      formData.append("file", blob, "reading.wav");
+    if (startTime) {
+  const endTime = Date.now();
+  const seconds = ((endTime - startTime) / 1000).toFixed(2);
+  setDuration(seconds);
+}
+    const formData = new FormData();
+    formData.append("file", blob, "reading.mp3");
 
+    try {
       const res = await fetch(`${API_BASE_URL}/analyze-voice`, {
         method: "POST",
         body: formData
       });
+
       const result = await res.json();
+      console.log("📝 Resultado:", result);
+      setStatus((prev) => ({ ...prev, voiceRecorded: true }));
 
       const predictionRes = await fetch(`${API_BASE_URL}/predict-reading`, {
         method: "POST",
@@ -109,7 +88,6 @@ export default function ReadingSession() {
 
       const predictionData = await predictionRes.json();
       setPrediction(predictionData);
-      handleVoiceRecorded();
 
       await fetch(`${API_BASE_URL}/register-reading`, {
         method: "POST",
@@ -125,31 +103,29 @@ export default function ReadingSession() {
           text_content: texts[currentIndex].content,
           face_detected: status.faceDetected,
           eye_tracking_active: status.eyeTrackingActive,
-          voice_recorded: status.voiceRecorded
+          voice_recorded: status.voiceRecorded,
+          duration:parseFloat(duration)
         })
       });
-    };
-
-    mediaRecorderRef.current.start();
-    setRecording(true);
-  };
-
-  const stopRecording = () => {
-    mediaRecorderRef.current.stop();
-    setRecording(false);
+    } catch (err) {
+      console.error("❌ Error al enviar audio:", err);
+      alert("Hubo un problema al analizar tu voz. Revisa la consola.");
+    }
   };
 
   const nextText = () => {
     if (currentIndex < texts.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
+    setDuration(null);
   };
 
   return (
     <>
       <div className="reading-container">
-        <h2>Texto {currentIndex + 1} — Nivel: {texts[currentIndex].level}</h2>
-        <p style={{ fontSize: "1.2em", lineHeight: "1.6" }}>{texts[currentIndex].content}</p>
+       <h2>Lee el siguiente texto:</h2>
+       <p style={{ fontSize: "1.2em", lineHeight: "1.6" }}>{texts[currentIndex].content}</p>
+        {duration && <p>⏱️ Tiempo de lectura: {duration} segundos</p>}
 
         {!recording ? (
           <button onClick={startRecording}>🎙️ Empezar lectura</button>
@@ -164,6 +140,10 @@ export default function ReadingSession() {
         {prediction && (
           <ReadingResultCard prediction={prediction} gazeData={gazeData} />
         )}
+        {/* ✅ Elementos requeridos por EyeGesturesLite */}
+        <div id="status" style={{ display: "none" }}></div>
+        <div id="error" style={{ display: "none", color: "red" }}></div>
+        <video id="video" style={{ display: "none" }} />
       </div>
 
       {recording && <StatusBar status={status} />}
