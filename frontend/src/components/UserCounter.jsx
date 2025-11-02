@@ -1,5 +1,6 @@
 // frontend/src/components/UserCounter.jsx
 import React, { useEffect, useState } from 'react';
+import API_BASE_URL from "../config/api";
 
 const UserCounter = () => {
   const [count, setCount] = useState(null);
@@ -7,7 +8,7 @@ const UserCounter = () => {
    useEffect(() => {
     // Solo registrar si el usuario no ha sido contado antes
     if (!localStorage.getItem('user_registered')) {
-      fetch('http://localhost:8000/register-user')
+      fetch(`${API_BASE_URL}/register-user`)
         .then(res => res.json())
         .then(data => {
           setCount(data.user_count);
