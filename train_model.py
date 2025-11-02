@@ -7,11 +7,27 @@ from sklearn.preprocessing import LabelEncoder
 import joblib
 import os
 
-# 📥 Cargar datos reales
-df = pd.read_csv("data/readings.csv")
+# 📥 Cargar datos de lectura
+readings_df = pd.read_csv("data/readings.csv")
+
+# 📥 Cargar datos de mirada
+gaze_df = pd.read_csv("data/recordings.csv")
+
+# 🧠 Calcular métricas visuales por sesión
+gaze_metrics = gaze_df.groupby(["text_id", "user_id"]).agg({
+    "x": ["mean", "std"],
+    "y": ["mean", "std"],
+    "timestamp": "count"
+}).reset_index()
+
+# 🔠 Renombrar columnas
+gaze_metrics.columns = ["text_id", "user_id", "x_mean", "x_std", "y_mean", "y_std", "gaze_points"]
+
+# 🔗 Unir con datos de lectura
+df = readings_df.merge(gaze_metrics, on=["text_id", "user_id"], how="left")
 
 # 🧹 Verificar columnas necesarias
-required_cols = ["words_per_minute", "error_rate", "fluency_score", "attention_score", "label"]
+required_cols = ["words_per_minute", "error_rate", "fluency_score", "attention_score", "x_mean", "x_std", "y_mean", "y_std", "gaze_points", "label"]
 missing = [col for col in required_cols if col not in df.columns]
 if missing:
     raise ValueError(f"Faltan columnas en readings.csv: {missing}")
@@ -21,7 +37,7 @@ le = LabelEncoder()
 df["label_encoded"] = le.fit_transform(df["label"])
 
 # 🎯 Separar características y etiquetas
-X = df[["words_per_minute", "error_rate", "fluency_score", "attention_score"]]
+X = df[["words_per_minute", "error_rate", "fluency_score", "attention_score", "x_mean", "x_std", "y_mean", "y_std", "gaze_points"]]
 y = df["label_encoded"]
 
 # 🔀 Dividir en entrenamiento y prueba
